@@ -4,6 +4,8 @@
 
 Built on Claude Code. No templates, no manual research, no design work. One input. One output. A PDF deck that makes you look like you spent a week preparing.
 
+![Example output — Why SafetyCulture slide generated autonomously](assets/demo-slide.png)
+
 ---
 
 ## Why I Built This
