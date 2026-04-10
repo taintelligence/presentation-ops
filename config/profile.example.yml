@@ -1,0 +1,21 @@
+candidate:
+  name: ""
+  current_title: ""
+  email: ""
+  linkedin: ""
+  location: ""
+
+career:
+  arc: ""
+  signature_strength: ""
+  tone: "confident and direct"
+
+proof_points:
+  - ""
+  - ""
+  - ""
+
+presentation:
+  include_contribution_slide: true
+  slide_count: 5
+  design_theme: "clean"

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{CANDIDATE_NAME}} — {{ROLE}} at {{COMPANY}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   BRAND COLOUR INJECTION
+   Claude replaces these values at render time
+   ============================================================ */
+:root {
+  --brand-primary:    {{BRAND_PRIMARY}};
+  --brand-secondary:  {{BRAND_SECONDARY}};
+  --brand-accent:     {{BRAND_ACCENT}};
+  --brand-bg:         {{BRAND_BG}};
+  --brand-text:       {{BRAND_TEXT}};
+
+  /* Derived tokens — do not replace */
+  --brand-primary-10: color-mix(in srgb, var(--brand-primary) 10%, white);
+  --brand-primary-20: color-mix(in srgb, var(--brand-primary) 20%, white);
+  --brand-primary-90: color-mix(in srgb, var(--brand-primary) 90%, black);
+
+  /* Typography */
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+
+  /* Spacing */
+  --slide-w: 1280px;
+  --slide-h: 720px;
+  --pad:     64px;
+  --pad-sm:  40px;
+}
+
+/* ============================================================
+   RESET + BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #e8e8e8;
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--brand-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   SLIDE CONTAINER
+   Each .slide is exactly 1280×720 — Puppeteer renders page by page
+   ============================================================ */
+.slide {
+  width: var(--slide-w);
+  height: var(--slide-h);
+  background: var(--brand-bg);
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto 32px;
+}
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+
+/* Top bar — brand colour strip */
+.slide__bar {
+  width: 100%;
+  height: 6px;
+  background: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+/* Slide label (top-right corner) */
+.slide__label {
+  position: absolute;
+  top: 24px;
+  right: var(--pad);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  opacity: 0.6;
+}
+
+/* Slide number (bottom-right) */
+.slide__num {
+  position: absolute;
+  bottom: var(--pad-sm);
+  right: var(--pad);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--brand-text);
+  opacity: 0.3;
+}
+
+/* Company watermark (bottom-left, subtle) */
+.slide__watermark {
+  position: absolute;
+  bottom: var(--pad-sm);
+  left: var(--pad);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--brand-text);
+  opacity: 0.25;
+  letter-spacing: 0.06em;
+}
+
+/* Decorative geometric accent — brand colour */
+.slide__geo {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+/* Section heading style */
+.section-title {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  margin-bottom: 16px;
+}
+
+/* Divider line */
+.divider {
+  width: 48px;
+  height: 3px;
+  background: var(--brand-primary);
+  border-radius: 2px;
+  margin-bottom: 28px;
+}
+
+/* ============================================================
+   SLIDE 1 — WHO I AM
+   ============================================================ */
+.slide--intro {
+  background: var(--brand-primary);
+}
+
+.slide--intro .slide__bar {
+  background: var(--brand-secondary);
+}
+
+.slide--intro .slide__label,
+.slide--intro .slide__num,
+.slide--intro .slide__watermark {
+  color: white;
+}
+
+.slide--intro .slide__geo {
+  background: white;
+  opacity: 0.05;
+}
+
+.intro__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--pad);
+  padding-top: 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.intro__role-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: white;
+  opacity: 0.65;
+  margin-bottom: 20px;
+}
+
+.intro__name {
+  font-family: var(--font-display);
+  font-size: 72px;
+  line-height: 1.0;
+  color: white;
+  margin-bottom: 24px;
+}
+
+.intro__title {
+  font-size: 20px;
+  font-weight: 300;
+  color: white;
+  opacity: 0.85;
+  margin-bottom: 32px;
+}
+
+.intro__positioning {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: white;
+  opacity: 0.9;
+  max-width: 680px;
+  padding-left: 20px;
+  border-left: 3px solid white;
+  border-left-opacity: 0.4;
+}
+
+.intro__meta {
+  position: absolute;
+  bottom: var(--pad);
+  right: var(--pad);
+  text-align: right;
+}
+
+.intro__meta-item {
+  font-size: 12px;
+  font-weight: 400;
+  color: white;
+  opacity: 0.55;
+  line-height: 1.8;
+}
+
+/* ============================================================
+   SLIDE 2 — THE JOURNEY
+   ============================================================ */
+.journey__body {
+  flex: 1;
+  display: flex;
+  padding: var(--pad);
+  padding-top: 40px;
+  gap: 56px;
+  align-items: flex-start;
+}
+
+.journey__left {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.journey__headline {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1.1;
+  color: var(--brand-primary);
+  margin-bottom: 24px;
+}
+
+.journey__intro {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--brand-text);
+  opacity: 0.75;
+}
+
+.journey__right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.journey__beat {
+  display: flex;
+  gap: 24px;
+  padding-bottom: 28px;
+  position: relative;
+}
+
+.journey__beat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 28px;
+  bottom: 0;
+  width: 2px;
+  background: var(--brand-primary-20);
+}
+
+.journey__dot {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey__dot-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+.journey__beat-content {}
+
+.journey__beat-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand-text);
+  margin-bottom: 5px;
+}
+
+.journey__beat-desc {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--brand-text);
+  opacity: 0.7;
+}
+
+/* ============================================================
+   SLIDE 3 — WHAT I BRING
+   ============================================================ */
+.bring__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad);
+  padding-top: 40px;
+}
+
+.bring__header {
+  margin-bottom: 44px;
+}
+
+.bring__headline {
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--brand-primary);
+  line-height: 1.1;
+}
+
+.bring__proofs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 32px;
+  flex: 1;
+}
+
+.proof-card {
+  background: var(--brand-primary-10);
+  border-radius: 12px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  border-top: 4px solid var(--brand-primary);
+}
+
+.proof-card__number {
+  font-family: var(--font-display);
+  font-size: 40px;
+  color: var(--brand-primary);
+  opacity: 0.2;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.proof-card__skill {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand-text);
+  margin-bottom: 8px;
+}
+
+.proof-card__example {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--brand-text);
+  opacity: 0.75;
+  flex: 1;
+}
+
+.proof-card__outcome {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--brand-primary);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--brand-primary-20);
+}
+
+/* ============================================================
+   SLIDE 4 — WHY [COMPANY]
+   ============================================================ */
+.why__body {
+  flex: 1;
+  display: flex;
+  padding: var(--pad);
+  padding-top: 40px;
+  gap: 64px;
+  align-items: center;
+}
+
+.why__left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.why__headline {
+  font-family: var(--font-display);
+  font-size: 52px;
+  line-height: 1.05;
+  color: var(--brand-primary);
+  margin-bottom: 32px;
+}
+
+.why__body-text {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--brand-text);
+  opacity: 0.85;
+  max-width: 520px;
+}
+
+.why__right {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.why__signal {
+  background: var(--brand-primary-10);
+  border-radius: 10px;
+  padding: 16px 20px;
+  border-left: 4px solid var(--brand-primary);
+}
+
+.why__signal-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  margin-bottom: 5px;
+}
+
+.why__signal-text {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--brand-text);
+  opacity: 0.8;
+}
+
+/* ============================================================
+   SLIDE 5 — HOW I WORK
+   ============================================================ */
+.howwork__body {
+  flex: 1;
+  display: flex;
+  padding: var(--pad);
+  padding-top: 40px;
+  gap: 64px;
+}
+
+.howwork__left {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.howwork__headline {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1.1;
+  color: var(--brand-primary);
+  margin-bottom: 20px;
+}
+
+.howwork__subtext {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--brand-text);
+  opacity: 0.7;
+}
+
+.howwork__right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
+
+.principle {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.principle__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.principle__icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: white;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.principle__content {}
+
+.principle__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand-text);
+  margin-bottom: 4px;
+}
+
+.principle__desc {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--brand-text);
+  opacity: 0.7;
+}
+
+/* ============================================================
+   SLIDE 6 — WHAT I'D DO (optional contribution slide)
+   ============================================================ */
+.contrib__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad);
+  padding-top: 40px;
+}
+
+.contrib__header {
+  margin-bottom: 40px;
+}
+
+.contrib__headline {
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--brand-primary);
+  line-height: 1.1;
+}
+
+.contrib__subtext {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--brand-text);
+  opacity: 0.65;
+  margin-top: 8px;
+}
+
+.contrib__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  flex: 1;
+}
+
+.contrib-card {
+  background: var(--brand-primary-10);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.contrib-card__phase {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  margin-bottom: 10px;
+}
+
+.contrib-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand-text);
+  margin-bottom: 8px;
+}
+
+.contrib-card__desc {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--brand-text);
+  opacity: 0.75;
+  flex: 1;
+}
+
+/* ============================================================
+   PRINT / PDF
+   ============================================================ */
+@media print {
+  body { background: white; }
+  .slide { margin: 0; page-break-after: always; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SLIDE 1 — WHO I AM
+     ============================================================ -->
+<div class="slide slide--intro">
+  <div class="slide__bar"></div>
+  <div class="slide__label">Interview Presentation</div>
+
+  <!-- Decorative circles -->
+  <div class="slide__geo" style="width:500px;height:500px;top:-100px;right:-150px;"></div>
+  <div class="slide__geo" style="width:200px;height:200px;bottom:40px;left:300px;"></div>
+
+  <div class="intro__body">
+    <div class="intro__role-label">{{ROLE}} — {{COMPANY}}</div>
+    <div class="intro__name">{{CANDIDATE_NAME}}</div>
+    <div class="intro__title">{{CANDIDATE_TITLE}}</div>
+    <div class="intro__positioning">{{SLIDE1_POSITIONING}}</div>
+  </div>
+
+  <div class="intro__meta">
+    <div class="intro__meta-item">{{CANDIDATE_EMAIL}}</div>
+    <div class="intro__meta-item">{{CANDIDATE_LINKEDIN}}</div>
+  </div>
+
+  <div class="slide__num">1 / {{TOTAL_SLIDES}}</div>
+</div>
+
+
+<!-- ============================================================
+     SLIDE 2 — THE JOURNEY
+     ============================================================ -->
+<div class="slide slide--journey">
+  <div class="slide__bar"></div>
+  <div class="slide__label">The Journey</div>
+  <div class="slide__geo" style="width:320px;height:320px;top:-80px;right:-60px;"></div>
+
+  <div class="journey__body">
+    <div class="journey__left">
+      <div class="section-title">Background</div>
+      <div class="divider"></div>
+      <div class="journey__headline">{{SLIDE2_HEADLINE}}</div>
+      <div class="journey__intro">{{SLIDE2_INTRO}}</div>
+    </div>
+
+    <div class="journey__right">
+      <!-- Beat 1 -->
+      <div class="journey__beat">
+        <div class="journey__dot"><div class="journey__dot-inner"></div></div>
+        <div class="journey__beat-content">
+          <div class="journey__beat-title">{{SLIDE2_BEAT1_TITLE}}</div>
+          <div class="journey__beat-desc">{{SLIDE2_BEAT1_DESC}}</div>
+        </div>
+      </div>
+      <!-- Beat 2 -->
+      <div class="journey__beat">
+        <div class="journey__dot"><div class="journey__dot-inner"></div></div>
+        <div class="journey__beat-content">
+          <div class="journey__beat-title">{{SLIDE2_BEAT2_TITLE}}</div>
+          <div class="journey__beat-desc">{{SLIDE2_BEAT2_DESC}}</div>
+        </div>
+      </div>
+      <!-- Beat 3 -->
+      <div class="journey__beat">
+        <div class="journey__dot"><div class="journey__dot-inner"></div></div>
+        <div class="journey__beat-content">
+          <div class="journey__beat-title">{{SLIDE2_BEAT3_TITLE}}</div>
+          <div class="journey__beat-desc">{{SLIDE2_BEAT3_DESC}}</div>
+        </div>
+      </div>
+      <!-- Beat 4 -->
+      <div class="journey__beat">
+        <div class="journey__dot" style="background: var(--brand-secondary);"><div class="journey__dot-inner"></div></div>
+        <div class="journey__beat-content">
+          <div class="journey__beat-title">{{SLIDE2_BEAT4_TITLE}}</div>
+          <div class="journey__beat-desc">{{SLIDE2_BEAT4_DESC}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide__watermark">{{COMPANY}}</div>
+  <div class="slide__num">2 / {{TOTAL_SLIDES}}</div>
+</div>
+
+
+<!-- ============================================================
+     SLIDE 3 — WHAT I BRING
+     ============================================================ -->
+<div class="slide slide--bring">
+  <div class="slide__bar"></div>
+  <div class="slide__label">What I Bring</div>
+  <div class="slide__geo" style="width:280px;height:280px;bottom:-60px;right:-60px;"></div>
+
+  <div class="bring__body">
+    <div class="bring__header">
+      <div class="section-title">Proof Points</div>
+      <div class="bring__headline">{{SLIDE3_HEADLINE}}</div>
+    </div>
+
+    <div class="bring__proofs">
+      <!-- Proof 1 -->
+      <div class="proof-card">
+        <div class="proof-card__number">01</div>
+        <div class="proof-card__skill">{{SLIDE3_P1_SKILL}}</div>
+        <div class="proof-card__example">{{SLIDE3_P1_EXAMPLE}}</div>
+        <div class="proof-card__outcome">{{SLIDE3_P1_OUTCOME}}</div>
+      </div>
+      <!-- Proof 2 -->
+      <div class="proof-card">
+        <div class="proof-card__number">02</div>
+        <div class="proof-card__skill">{{SLIDE3_P2_SKILL}}</div>
+        <div class="proof-card__example">{{SLIDE3_P2_EXAMPLE}}</div>
+        <div class="proof-card__outcome">{{SLIDE3_P2_OUTCOME}}</div>
+      </div>
+      <!-- Proof 3 -->
+      <div class="proof-card">
+        <div class="proof-card__number">03</div>
+        <div class="proof-card__skill">{{SLIDE3_P3_SKILL}}</div>
+        <div class="proof-card__example">{{SLIDE3_P3_EXAMPLE}}</div>
+        <div class="proof-card__outcome">{{SLIDE3_P3_OUTCOME}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide__watermark">{{COMPANY}}</div>
+  <div class="slide__num">3 / {{TOTAL_SLIDES}}</div>
+</div>
+
+
+<!-- ============================================================
+     SLIDE 4 — WHY [COMPANY]
+     ============================================================ -->
+<div class="slide slide--why">
+  <div class="slide__bar"></div>
+  <div class="slide__label">Why {{COMPANY}}</div>
+  <div class="slide__geo" style="width:360px;height:360px;top:-100px;left:-80px;"></div>
+
+  <div class="why__body">
+    <div class="why__left">
+      <div class="section-title">Deliberate Choice</div>
+      <div class="divider"></div>
+      <div class="why__headline">{{SLIDE4_HEADLINE}}</div>
+      <div class="why__body-text">{{SLIDE4_BODY}}</div>
+    </div>
+
+    <div class="why__right">
+      <!-- Signal 1 — company mission/value -->
+      <div class="why__signal">
+        <div class="why__signal-label">{{SLIDE4_S1_LABEL}}</div>
+        <div class="why__signal-text">{{SLIDE4_S1_TEXT}}</div>
+      </div>
+      <!-- Signal 2 — recent news/initiative -->
+      <div class="why__signal">
+        <div class="why__signal-label">{{SLIDE4_S2_LABEL}}</div>
+        <div class="why__signal-text">{{SLIDE4_S2_TEXT}}</div>
+      </div>
+      <!-- Signal 3 — culture/team -->
+      <div class="why__signal">
+        <div class="why__signal-label">{{SLIDE4_S3_LABEL}}</div>
+        <div class="why__signal-text">{{SLIDE4_S3_TEXT}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide__watermark">{{COMPANY}}</div>
+  <div class="slide__num">4 / {{TOTAL_SLIDES}}</div>
+</div>
+
+
+<!-- ============================================================
+     SLIDE 5 — HOW I WORK
+     ============================================================ -->
+<div class="slide slide--howwork">
+  <div class="slide__bar"></div>
+  <div class="slide__label">How I Work</div>
+  <div class="slide__geo" style="width:300px;height:300px;bottom:-80px;right:80px;"></div>
+
+  <div class="howwork__body">
+    <div class="howwork__left">
+      <div class="section-title">Working Style</div>
+      <div class="divider"></div>
+      <div class="howwork__headline">{{SLIDE5_HEADLINE}}</div>
+      <div class="howwork__subtext">{{SLIDE5_SUBTEXT}}</div>
+    </div>
+
+    <div class="howwork__right">
+      <!-- Principle 1 -->
+      <div class="principle">
+        <div class="principle__icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        </div>
+        <div class="principle__content">
+          <div class="principle__title">{{SLIDE5_PR1_TITLE}}</div>
+          <div class="principle__desc">{{SLIDE5_PR1_DESC}}</div>
+        </div>
+      </div>
+      <!-- Principle 2 -->
+      <div class="principle">
+        <div class="principle__icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <div class="principle__content">
+          <div class="principle__title">{{SLIDE5_PR2_TITLE}}</div>
+          <div class="principle__desc">{{SLIDE5_PR2_DESC}}</div>
+        </div>
+      </div>
+      <!-- Principle 3 -->
+      <div class="principle">
+        <div class="principle__icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <div class="principle__content">
+          <div class="principle__title">{{SLIDE5_PR3_TITLE}}</div>
+          <div class="principle__desc">{{SLIDE5_PR3_DESC}}</div>
+        </div>
+      </div>
+      <!-- Principle 4 -->
+      <div class="principle">
+        <div class="principle__icon">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <div class="principle__content">
+          <div class="principle__title">{{SLIDE5_PR4_TITLE}}</div>
+          <div class="principle__desc">{{SLIDE5_PR4_DESC}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide__watermark">{{COMPANY}}</div>
+  <div class="slide__num">5 / {{TOTAL_SLIDES}}</div>
+</div>
+
+
+<!-- ============================================================
+     SLIDE 6 — WHAT I'D DO (optional)
+     Rendered only if include_contribution_slide: true
+     ============================================================ -->
+<div class="slide slide--contrib" id="slide-contrib">
+  <div class="slide__bar"></div>
+  <div class="slide__label">What I'd Do</div>
+  <div class="slide__geo" style="width:400px;height:400px;top:-120px;right:-100px;"></div>
+
+  <div class="contrib__body">
+    <div class="contrib__header">
+      <div class="section-title">First 90 Days</div>
+      <div class="contrib__headline">{{SLIDE6_HEADLINE}}</div>
+      <div class="contrib__subtext">{{SLIDE6_SUBTEXT}}</div>
+    </div>
+
+    <div class="contrib__grid">
+      <!-- Phase 1 -->
+      <div class="contrib-card">
+        <div class="contrib-card__phase">Days 1–30</div>
+        <div class="contrib-card__title">{{SLIDE6_P1_TITLE}}</div>
+        <div class="contrib-card__desc">{{SLIDE6_P1_DESC}}</div>
+      </div>
+      <!-- Phase 2 -->
+      <div class="contrib-card">
+        <div class="contrib-card__phase">Days 31–60</div>
+        <div class="contrib-card__title">{{SLIDE6_P2_TITLE}}</div>
+        <div class="contrib-card__desc">{{SLIDE6_P2_DESC}}</div>
+      </div>
+      <!-- Phase 3 -->
+      <div class="contrib-card">
+        <div class="contrib-card__phase">Days 61–90</div>
+        <div class="contrib-card__title">{{SLIDE6_P3_TITLE}}</div>
+        <div class="contrib-card__desc">{{SLIDE6_P3_DESC}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide__watermark">{{COMPANY}}</div>
+  <div class="slide__num">6 / {{TOTAL_SLIDES}}</div>
+</div>
+
+</body>
+</html>

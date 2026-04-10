@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:jobs.lever.co)",
+      "WebFetch(domain:brandfetch.com)",
+      "WebFetch(domain:safetyculture.com)",
+      "WebFetch(domain:logotyp.us)",
+      "WebFetch(domain:blog.safetyculture.com)",
+      "WebFetch(domain:wellfound.com)",
+      "Bash(node:*)"
+    ]
+  }
+}

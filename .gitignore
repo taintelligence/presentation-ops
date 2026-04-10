@@ -1,0 +1,5 @@
+output/
+node_modules/
+config/profile.yml
+cv.md
+.DS_Store
