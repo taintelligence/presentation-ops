@@ -58,7 +58,13 @@ This is the main command. Run the full 6-stage agentic pipeline below.
 
 ### STAGE 1 — INGEST
 
-1. Read `cv.md` in full
+1. Detect which CV to use based on the role title:
+   - If role contains "Intelligence", "Insights", "Analytics", "Research", 
+     "Strategy", or "Data" → read `cv-ti.md`
+   - If role contains "Partner", "Recruiter", "Acquisition", "Sourcing", or "TA" 
+     → read `cv-ta.md`
+   - If ambiguous → use `cv-ta.md` and tell the user: 
+     "Using your TA Partner CV — let me know if you'd prefer the TI version."
 2. Read `config/profile.yml`
 3. Confirm to user: "Got your CV. Starting research for **[role]** at **[company]**..."
 4. Set `{slug}` = lowercase company name with hyphens (e.g. `booking-com`)

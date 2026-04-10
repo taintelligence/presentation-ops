@@ -1,5 +1,6 @@
 output/
 node_modules/
 config/profile.yml
-cv.md
+cv-ti.md
+cv-ta.md
 .DS_Store
